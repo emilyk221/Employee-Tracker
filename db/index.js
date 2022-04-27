@@ -36,7 +36,7 @@ router.post("/department", ({ body }, res) => {
 
 // Get all roles
 router.get("/roles", (req, res) => {
-  db.query(`SELECT * FROM role`, (err, rows) => {
+  db.query(`SELECT role.title AS job_title, role.id AS role_id, department.name AS department_name, role.salary FROM role JOIN department ON role.department_id = department.id`, (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -68,7 +68,7 @@ router.post("/role", ({ body }, res) => {
 
 // Get all employees
 router.get("/employees", (req, res) => {
-  db.query(`SELECT * FROM employee`, (err, rows) => {
+  db.query(`SELECT employee.id AS employee_id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`, (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
