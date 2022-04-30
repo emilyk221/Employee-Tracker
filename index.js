@@ -1,22 +1,7 @@
-const express = require("express");
 const db = require("./db/connection");
-const routes = require("./db/index");
+const {viewAllDepartments, addDepartment, viewRoles, viewEmployees} = require("./db/index.js");
 const inquirer = require("inquirer");
-const table = require('console.table');
-
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-//Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-app.use("/api", routes);
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
+const table = require("console.table");
 
 const mainMenuPrompt = {
   type: "list",
@@ -30,28 +15,51 @@ const mainMenu = () => {
   return inquirer.prompt(mainMenuPrompt)
   .then(menuResponse => {
     if (menuResponse.menu === "View all departments") {
-      // fetch/get request to return table listing all departments
-      mainMenu();
+      // return table listing all departments
+      viewAllDepartments().then((data) => {
+        console.table(data[0]);
+      });
       return;
     }
     else if (menuResponse.menu === "View all roles") {
-      // fetch/get request to return table listing all roles
-      console.log("View roles");
-      mainMenu();
+      // return table listing all roles
+      viewRoles().then((data) => {
+        console.table(data[0]);
+      });
       return;
     }
     else if (menuResponse.menu === "View all employees") {
-      // fetch/get request to return table listing all employees
-      console.log("View employees");
-      mainMenu();
+      // return table listing all employees
+      viewEmployees().then((data) => {
+        console.table(data[0]);
+      });
       return;
     }
     else if (menuResponse.menu === "Add a department") {
       // prompt name of department
-      // post request to add a department to database
-      console.log("Add dept");
-      mainMenu();
-      return;
+      return inquirer.prompt(
+        {
+          type: "input",
+          name: "name",
+          message: "What is the name of the department?",
+          validate: deptInput => {
+            if (deptInput) {
+              return true;
+            }
+            else {
+              console.log("Please enter a department name!");
+              return false;
+            }
+          }
+        }
+        // add a department to database
+      ).then(deptInput => {
+          addDepartment(deptInput);
+          })
+        .then(data => {
+          console.log(data);
+          //console.log(`Added ${data.name} to the database`);
+        });
     }
     else if (menuResponse.menu === "Add a role") {
       // prompt role name, role salary, and department of role
@@ -83,12 +91,3 @@ const mainMenu = () => {
 }
 
 mainMenu();
-
-// Start server after DB connection
-db.connect(err => {
-  if (err) throw err;
-  console.log("Database connected.");
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-});

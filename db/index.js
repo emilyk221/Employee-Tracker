@@ -2,51 +2,29 @@ const express = require("express");
 const router = express.Router();
 const db = require("./connection");
 
+const PORT = process.env.PORT || 3001;
+const app = express();
+
 // Get all departments
-router.get("/departments", (req, res) => {
-  db.query(`SELECT * FROM department`, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows
-    });
-  });
-});
+const viewAllDepartments = () => {
+  return db.promise().query(`SELECT * FROM department`);
+}
+
 
 // Add a department
-router.post("/department", ({ body }, res) => {
+const addDepartment = deptName => {
   const sql = `INSERT INTO department (name)
     VALUES (?)`;
-  const params = [body.name];
+  const params = deptName;
 
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: body
-    });
-  });
-});
+  return db.promise().query(sql, params);
+}
 
 // Get all roles
-router.get("/roles", (req, res) => {
-  db.query(`SELECT role.title AS job_title, role.id AS role_id, department.name AS department_name, role.salary FROM role JOIN department ON role.department_id = department.id`, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows
-    });
-  });
-});
+const viewRoles = () => {
+  return db.promise().query(`SELECT role.title AS job_title, role.id AS role_id, department.name AS department_name, role.salary FROM role
+  JOIN department ON role.department_id = department.id`);
+}
 
 // Add a role
 router.post("/role", ({ body }, res) => {
@@ -67,18 +45,11 @@ router.post("/role", ({ body }, res) => {
 });
 
 // Get all employees
-router.get("/employees", (req, res) => {
-  db.query(`SELECT employee.id AS employee_id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id`, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows
-    });
-  });
-});
+const viewEmployees = () => {
+  return db.promise().query(`SELECT employee.id AS id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary AS salary FROM employee
+  JOIN role ON employee.role_id = role.id
+  JOIN department ON role.department_id = department.id`);
+}
 
 // Add an employee
 router.post("/employee", ({ body }, res) => {
@@ -122,4 +93,13 @@ router.put("/employee/:id", (req, res) => {
   });
 });
 
-module.exports = router;
+// Start server after DB connection
+db.connect(err => {
+  if (err) throw err;
+  console.log("Database connected.");
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+});
+
+module.exports = {viewAllDepartments, addDepartment, viewRoles, viewEmployees};
