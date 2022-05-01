@@ -13,40 +13,25 @@ const viewAllDepartments = () => {
 
 // Add a department
 const addDepartment = deptName => {
-  const sql = `INSERT INTO department (name)
-    VALUES (?)`;
-  const params = deptName;
-
-  return db.promise().query(sql, params);
+  db.query(`INSERT INTO department (name)
+  VALUES (?)`, deptName);
 }
 
 // Get all roles
 const viewRoles = () => {
-  return db.promise().query(`SELECT role.title AS job_title, role.id AS role_id, department.name AS department_name, role.salary FROM role
+  return db.promise().query(`SELECT role.id AS id, role.title AS title, department.name AS department, role.salary FROM role
   JOIN department ON role.department_id = department.id`);
 }
 
 // Add a role
-router.post("/role", ({ body }, res) => {
-  const sql = `INSERT INTO role (title, salary, department_id)
-    VALUES (?,?,?)`;
-  const params = [body.title, body.salary, body.department_id];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: body
-    });
-  });
-});
+const addRole = roleArr => {
+  db.query(`INSERT INTO role (title, salary, department_id)
+  VALUES (?,?,?)`, roleArr);
+}
 
 // Get all employees
 const viewEmployees = () => {
-  return db.promise().query(`SELECT employee.id AS id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary AS salary FROM employee
+  return db.promise().query(`SELECT employee.id AS id, employee.first_name, employee.last_name, role.title AS title, department.name AS department, role.salary AS salary, employee.manager_id as manager FROM employee
   JOIN role ON employee.role_id = role.id
   JOIN department ON role.department_id = department.id`);
 }
@@ -102,4 +87,4 @@ db.connect(err => {
   });
 });
 
-module.exports = {viewAllDepartments, addDepartment, viewRoles, viewEmployees};
+module.exports = {viewAllDepartments, addDepartment, viewRoles, viewEmployees, addRole};

@@ -1,5 +1,5 @@
 const db = require("./db/connection");
-const {viewAllDepartments, addDepartment, viewRoles, viewEmployees} = require("./db/index.js");
+const {viewAllDepartments, addDepartment, viewRoles, viewEmployees, addRole} = require("./db/index.js");
 const inquirer = require("inquirer");
 const table = require("console.table");
 
@@ -40,7 +40,7 @@ const mainMenu = () => {
       return inquirer.prompt(
         {
           type: "input",
-          name: "name",
+          name: "dept",
           message: "What is the name of the department?",
           validate: deptInput => {
             if (deptInput) {
@@ -53,20 +53,69 @@ const mainMenu = () => {
           }
         }
         // add a department to database
-      ).then(deptInput => {
-          addDepartment(deptInput);
-          })
-        .then(data => {
-          console.log(data);
-          //console.log(`Added ${data.name} to the database`);
+      ).then(ansObj => {
+          addDepartment(ansObj.dept);
+          console.log(`Added ${ansObj.dept} to the database`);
+          return;
         });
     }
     else if (menuResponse.menu === "Add a role") {
       // prompt role name, role salary, and department of role
+      let deptArr = [];
+      let deptObj = {};
+      viewAllDepartments().then((data) => {
+        deptObj = data[0];
+        for (let i = 0; i < data[0].length; i++) {
+          deptArr.push(data[0][i].name);
+        }
+      });
+      return inquirer.prompt([
+        {
+          type: "input",
+          name: "role",
+          message: "What is the name of the role?",
+          validate: roleInput => {
+            if (roleInput) {
+              return true;
+            }
+            else {
+              console.log("Please enter a role name!");
+              return false;
+            }
+          }
+        },
+        {
+          type: "number",
+          name: "salary",
+          message: "What is the salary of the role?",
+          validate: salaryInput => {
+            if (salaryInput) {
+              return true;
+            }
+            else {
+              console.log("Please enter a salary!");
+              return false;
+            }
+          }
+        },
+        {
+          type: "list",
+          name: "dept",
+          message: "Which department does the role belong to?",
+          choices: deptArr
+        }
+      ])
       // post request to add role to database
-      console.log("Add role");
-      mainMenu();
-      return;
+      .then(ansObj => {
+        let index = deptArr.findIndex(deptName => deptName === ansObj.dept);
+        let deptId = deptObj[index].id;
+        ansObj.dept_id = deptId;
+        delete ansObj.dept;
+        let roleArr = [ansObj.role, ansObj.salary, ansObj.dept_id];
+        addRole(roleArr);
+        console.log(`Added ${ansObj.role} to the database`);
+        return;
+      })
     }
     else if (menuResponse.menu === "Add an employee") {
       // prompt employee's fist and last names, role, and manager
