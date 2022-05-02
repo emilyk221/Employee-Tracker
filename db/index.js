@@ -1,15 +1,9 @@
-const express = require("express");
-const router = express.Router();
 const db = require("./connection");
-
-const PORT = process.env.PORT || 3001;
-const app = express();
 
 // Get all departments
 const viewAllDepartments = () => {
   return db.promise().query(`SELECT * FROM department`);
 }
-
 
 // Add a department
 const addDepartment = deptName => {
@@ -51,14 +45,5 @@ const addEmployee = empArr => {
 const updateEmployee = arr => {
   db.query(`UPDATE employee SET role_id = ? WHERE id = ?`, arr);
 }
-
-// Start server after DB connection
-db.connect(err => {
-  if (err) throw err;
-  console.log("Database connected.");
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-});
 
 module.exports = {viewAllDepartments, addDepartment, viewRoles, viewEmployees, addRole, addEmployee, viewManagers, updateEmployee};

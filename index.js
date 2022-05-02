@@ -1,4 +1,3 @@
-const db = require("./db/connection");
 const {viewAllDepartments, addDepartment, viewRoles, viewEmployees, addRole, addEmployee, viewManagers, updateEmployee} = require("./db/index.js");
 const inquirer = require("inquirer");
 const table = require("console.table");
